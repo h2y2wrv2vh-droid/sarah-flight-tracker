@@ -394,7 +394,9 @@ document.getElementById('chatText').addEventListener('keydown', function(e){
 (function(){
   var fab = document.getElementById('chatFab');
   function onScroll(){
-    var nearBottom = (window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 20;
+    var el = document.documentElement;
+    var scrollable = el.scrollHeight > window.innerHeight + 1;
+    var nearBottom = scrollable && (window.innerHeight + window.scrollY) >= el.scrollHeight - 20;
     fab.style.opacity = nearBottom ? '0' : '1';
     fab.style.pointerEvents = nearBottom ? 'none' : 'auto';
   }
