@@ -686,11 +686,23 @@ function gfUrl(t){
   else gf += '%20oneway';
   return gf;
 }
+function expDate(iso){ var p = iso.split('-'); return p[1] + '/' + p[2] + '/' + p[0] + 'TANYT'; }
+function expediaUrl(t){
+  var enc = encodeURIComponent;
+  var dest = t.destCode || t.destName;
+  var u = 'https://www.expedia.com/Flights-Search?trip=' + (t.ret ? 'roundtrip' : 'oneway')
+    + '&leg1=from:' + enc(t.origin) + ',to:' + enc(dest) + ',departure:' + expDate(t.dep);
+  if(t.ret){
+    u += '&leg2=from:' + enc(dest) + ',to:' + enc(t.origin) + ',departure:' + expDate(t.ret);
+  }
+  u += '&passengers=adults:' + (t.adults || 1) + '&mode=search';
+  return u;
+}
 function siteLinks(t){
   var enc = encodeURIComponent;
   var links = [];
   links.push({name:'Google Flights', url:gfUrl(t)});
-  links.push({name:'Expedia', url:'https://www.expedia.com/Flights'});
+  links.push({name:'Expedia', url:expediaUrl(t)});
   var kk = 'https://www.kayak.com/flights/' + enc(t.origin) + '-' + enc(t.destCode || t.destName)
     + '/' + t.dep + (t.ret ? '/' + t.ret : '') + '/' + t.adults + 'adults?sort=price_a';
   links.push({name:'Kayak', url:kk});
