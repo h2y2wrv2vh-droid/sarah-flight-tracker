@@ -18,7 +18,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#ffeef4 0%,#fff6f9 260px,#fff6f9 100%);color:#5c2a42;-webkit-text-size-adjust:100;min-height:100vh}
-  .topbar{background:linear-gradient(135deg,#ff7ba9,#e75480 60%,#d1466f);color:#fff;padding:16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 14px rgba(231,84,128,.35);border-radius:0 0 22px 22px}
+  .topbar{background:linear-gradient(135deg,#ff7ba9,#e75480 60%,#d1466f);color:#fff;padding:16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 14px rgba(231,84,128,.35);}
   .topbar .logo{width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
   .topbar h1{font-size:19px;font-weight:800;letter-spacing:-.2px}
   .topbar .sub{font-size:12.5px;opacity:.92;font-weight:600}
@@ -127,6 +127,7 @@
   .chatfab{position:fixed;right:16px;bottom:16px;z-index:70;width:58px;height:58px;border-radius:50%;
     background:linear-gradient(135deg,#ff7ba9,#e75480);border:none;font-size:26px;cursor:pointer;
     box-shadow:0 6px 18px rgba(231,84,128,.5);display:flex;align-items:center;justify-content:center}
+  .chatfab{transition:opacity .3s}
   .chatfab::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--brand);
     opacity:.6;animation:fabPulse 2.4s ease-out infinite}
   @keyframes fabPulse{0%{transform:scale(.85);opacity:.7}70%{transform:scale(1.15);opacity:0}100%{transform:scale(1.15);opacity:0}}
@@ -381,6 +382,16 @@ document.getElementById('chatSend').addEventListener('click', sendChat);
 document.getElementById('chatText').addEventListener('keydown', function(e){
   if(e.key === 'Enter'){ e.preventDefault(); sendChat(); }
 });
+(function(){
+  var fab = document.getElementById('chatFab');
+  function onScroll(){
+    var nearBottom = (window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 20;
+    fab.style.opacity = nearBottom ? '0' : '1';
+    fab.style.pointerEvents = nearBottom ? 'none' : 'auto';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
 
 /* ---------- search (read-only) ---------- */
 var _offers = [], _trip = {};
