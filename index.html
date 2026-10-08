@@ -19,7 +19,7 @@
   .topbar h1{font-size:18px;font-weight:700;letter-spacing:-.2px}
   .topbar .sub{font-size:12px;opacity:.8}
   .wrap{max-width:680px;margin:0 auto;padding:14px 12px 60px}
-  /* Expedia-like trip form */
+  /* trip form */
   .searchbar{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.10);padding:14px;margin-bottom:12px}
   .formtitle{margin-bottom:10px}
   .formtitle b{font-size:16px;display:block}
@@ -34,12 +34,36 @@
   .formstatus{display:none;margin-top:10px;font-size:13.5px;border-radius:10px;padding:10px 12px;line-height:1.5}
   .formstatus.ok{display:block;background:var(--greenbg);color:var(--green)}
   .formstatus.err{display:block;background:#fdecea;color:#9c2b2b}
+  /* finder results */
+  .finder{display:none;background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.10);padding:14px;margin-bottom:12px}
+  .finder.show{display:block}
+  .finder h2{font-size:16px;margin-bottom:2px}
+  .finder .fnote{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .floading{text-align:center;padding:22px;color:var(--muted);font-size:14px}
+  .floading .spin{display:inline-block;width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp 0.9s linear infinite;vertical-align:-5px;margin-right:8px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .ocard{border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:12px}
+  .opricebox{text-align:right;flex-shrink:0;min-width:86px}
+  .oprice{font-size:23px;font-weight:800;color:var(--brand-dark)}
+  .oper{font-size:11px;color:var(--muted)}
+  .oinfo{flex:1;min-width:0}
+  .oair{font-size:15px;font-weight:700}
+  .ometa{font-size:12.5px;color:var(--muted);margin:2px 0 6px}
+  .oseg{font-size:12.5px;color:var(--muted);line-height:1.6}
+  .oseg b{color:#16283f}
+  .siterow{margin-top:12px}
+  .siterow .sitetitle{font-size:13px;font-weight:700;margin-bottom:8px}
+  .sitebtns{display:flex;gap:8px;flex-wrap:wrap}
+  .sitebtn{flex:1;min-width:120px;background:#f8fafd;border:1.5px solid var(--line);color:var(--brand);border-radius:999px;padding:10px;font-size:13.5px;font-weight:700;text-align:center;text-decoration:none}
+  .sitebtn:active{background:#eaf0f8}
+  .ftracked{margin-top:10px;font-size:12.5px;color:var(--green);background:var(--greenbg);border-radius:10px;padding:8px 12px}
   /* sort + currency toolbar */
   .toolbar{display:flex;align-items:center;gap:10px;margin:2px 2px 12px;flex-wrap:wrap}
   .toolbar label{font-size:13px;color:var(--muted)}
   select{font-size:14px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:#16283f}
   .spacer{flex:1}
   .updated{font-size:12px;color:var(--muted);margin:0 2px 10px}
+  .sechead{font-size:15px;font-weight:800;margin:6px 2px 10px}
   /* flight-result style cards */
   .card{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.08);margin-bottom:12px;overflow:hidden}
   .card-main{display:flex;gap:12px;padding:16px 16px 6px}
@@ -68,15 +92,15 @@
 <body>
 <div class="topbar">
   <div class="logo">✈</div>
-  <div><h1>Flight Tracker</h1><div class="sub">Daily price watch for your wishlist</div></div>
+  <div><h1>Flight Tracker</h1><div class="sub">Find it, track it, catch the drop</div></div>
 </div>
 <div class="wrap">
   <div class="searchbar">
-    <div class="formtitle"><b>Track a new trip</b><span>Add a destination and your estimated dates — prices get checked every morning.</span></div>
+    <div class="formtitle"><b>Find &amp; track a trip</b><span>See live prices now — we'll keep watching daily.</span></div>
     <form id="tripForm" novalidate>
       <div class="frow">
         <label>From<input id="fHome" maxlength="3" value="YYZ" autocapitalize="characters"></label>
-        <label>To (city)<input id="fDest" placeholder="Paris" required></label>
+        <label>To (city or code)<input id="fDest" placeholder="Paris" required></label>
       </div>
       <div class="frow">
         <label>Depart<input id="fDepart" type="date" required></label>
@@ -105,10 +129,23 @@
         <label>Target price, USD (optional)<input id="fTarget" inputmode="decimal" placeholder="800"></label>
         <label>Email for price-drop alerts (optional)<input id="fEmail" type="email" inputmode="email" placeholder="you@email.com"></label>
       </div>
-      <button class="cta" type="submit" id="tripSubmit">Start tracking</button>
+      <button class="cta" type="submit" id="tripSubmit">Find flights</button>
       <div class="formstatus" id="formStatus"></div>
     </form>
   </div>
+
+  <div class="finder" id="finder">
+    <h2 id="finderTitle">Live prices</h2>
+    <div class="fnote" id="finderNote"></div>
+    <div id="finderBody"></div>
+    <div class="siterow" id="siteRow" style="display:none">
+      <div class="sitetitle">Compare on your sites</div>
+      <div class="sitebtns" id="siteBtns"></div>
+    </div>
+    <div class="ftracked" id="finderTracked" style="display:none"></div>
+  </div>
+
+  <div class="sechead">Tracked trips</div>
   <div class="toolbar">
     <label for="sort">Sort</label>
     <select id="sort">
@@ -128,10 +165,25 @@
   <div class="updated" id="updatedLine"></div>
   <div id="cards"></div>
 </div>
-<footer>Prices are round-trip totals, checked daily.<br>Fares move fast — a tracked price is a snapshot, not a guarantee.</footer>
+<footer>Prices are round-trip totals unless noted.<br>Fares move fast — a price is a snapshot, not a guarantee.</footer>
 
 <script>
-var INTAKE_URL = "https://script.google.com/macros/s/AKfycbzBiXMNCSLrBggXgJ2DBkubQC9-oixWYbMi6pQcqi4OL0UHdU7gw-dXha7DUR1WL8df/exec";
+var FINDER_URL = "https://script.google.com/macros/s/AKfycbzBiXMNCSLrBggXgJ2DBkubQC9-oixWYbMi6pQcqi4OL0UHdU7gw-dXha7DUR1WL8df/exec";
+
+/* Client-side airport code resolution for deep links (mirrors the backend map). */
+var CITY_CODES = {london:"LHR",tokyo:"HND",paris:"CDG","new york":"JFK","los angeles":"LAX",
+"san francisco":"SFO",dubai:"DXB",singapore:"SIN","hong kong":"HKG",bangkok:"BKK",delhi:"DEL",
+mumbai:"BOM",toronto:"YYZ",vancouver:"YVR",montreal:"YUL",calgary:"YYC",rome:"FCO",madrid:"MAD",
+barcelona:"BCN",amsterdam:"AMS",frankfurt:"FRA",seoul:"ICN",sydney:"SYD",bali:"DPS",maldives:"MLE",
+cancun:"CUN","las vegas":"LAS",orlando:"MCO",chicago:"ORD",boston:"BOS",washington:"DCA",miami:"MIA",
+atlanta:"ATL",dallas:"DFW",houston:"IAH",denver:"DEN",seattle:"SEA",lisbon:"LIS",athens:"ATH",
+istanbul:"IST",cairo:"CAI",nairobi:"NBO","cape town":"CPT","rio de janeiro":"GIG","mexico city":"MEX",
+havana:"HAV","punta cana":"PUJ","montego bay":"MBJ",honolulu:"HNL",maui:"OGG"};
+function resolveCode(dest){
+  dest = (dest || "").trim();
+  if(/^[a-zA-Z]{3}$/.test(dest)) return dest.toUpperCase();
+  return (CITY_CODES[dest.toLowerCase()] || "").toUpperCase();
+}
 
 var currency = localStorage.getItem("ft-currency") || "USD";
 var sortMode = localStorage.getItem("ft-sort") || "drop";
@@ -141,11 +193,86 @@ curSel.value = currency; sortSel.value = sortMode;
 curSel.addEventListener("change", function(){ currency = curSel.value; localStorage.setItem("ft-currency", currency); render(window._data); });
 sortSel.addEventListener("change", function(){ sortMode = sortSel.value; localStorage.setItem("ft-sort", sortMode); render(window._data); });
 
-/* Trip intake form */
+/* ---------- finder: JSONP trip intake + live offers ---------- */
+function finderSearch(params, cb){
+  var cbName = "ftFinder" + Date.now() + Math.floor(Math.random()*1000);
+  var s = document.createElement("script");
+  var done = false;
+  function cleanup(){
+    if(done) return; done = true;
+    clearTimeout(timer);
+    try{ delete window[cbName]; }catch(e){ window[cbName] = undefined; }
+    if(s.parentNode) s.parentNode.removeChild(s);
+  }
+  window[cbName] = function(data){ cleanup(); cb(data); };
+  var q = "callback=" + encodeURIComponent(cbName);
+  for(var k in params){ q += "&" + encodeURIComponent(k) + "=" + encodeURIComponent(params[k]); }
+  var timer = setTimeout(function(){ cleanup(); cb({ok:false, error:"timeout"}); }, 30000);
+  s.onerror = function(){ cleanup(); cb({ok:false, error:"network"}); };
+  s.src = FINDER_URL + "?" + q;
+  document.head.appendChild(s);
+}
+
+function fmtTime(t){
+  // "YYYY-MM-DD HH:MM" (airport-local) -> "Dec 10 · 8:30 AM"
+  var m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t || "");
+  if(!m) return esc(t);
+  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var h = parseInt(m[4],10), ap = h >= 12 ? "PM" : "AM";
+  h = h % 12; if(h === 0) h = 12;
+  return months[parseInt(m[2],10)-1] + " " + parseInt(m[3],10) + " · " + h + ":" + m[5] + " " + ap;
+}
+
+function offerCard(o, travelers){
+  var segs = (o.segments || []).map(function(s){
+    return '<div class="oseg"><b>' + esc(s.from) + ' → ' + esc(s.to) + '</b> '
+      + esc(fmtTime(s.dep)) + ' – ' + esc(fmtTime(s.arr))
+      + ' <span>· ' + esc(s.airline) + (s.flight ? ' ' + esc(s.flight) : '') + '</span></div>';
+  }).join('');
+  var dur = o.durationMin ? Math.floor(o.durationMin/60) + 'h ' + (o.durationMin%60) + 'm' : '';
+  var stops = o.stops === 0 ? 'Nonstop' : o.stops + ' stop' + (o.stops > 1 ? 's' : '');
+  return '<div class="ocard"><div class="oinfo">'
+    + '<div class="oair">' + esc(o.airline || 'Multiple airlines') + '</div>'
+    + '<div class="ometa">' + esc(stops) + (dur ? ' · ' + esc(dur) : '') + '</div>'
+    + segs + '</div>'
+    + '<div class="opricebox"><div class="oprice">$' + esc(o.price) + '</div>'
+    + '<div class="oper">total' + (travelers > 1 ? ' · ' + travelers + ' travelers' : '') + '</div></div></div>';
+}
+
+/* Deep links to her usual flight sites.
+   Google Flights / Kayak / Skyscanner patterns verified 2026-10-08 (prefilled).
+   Expedia's prefill needs Expedia's own airport labels, so it gets a direct link. */
+function siteLinks(t){
+  var enc = encodeURIComponent;
+  var links = [];
+  var gf = 'https://www.google.com/travel/flights?q=Flights%20to%20' + enc(t.destCode || t.destName)
+    + '%20from%20' + enc(t.origin) + '%20on%20' + t.dep;
+  if(t.ret) gf += '%20round%20trip%20returning%20' + t.ret;
+  links.push({name:'Google Flights', url:gf});
+  links.push({name:'Expedia', url:'https://www.expedia.com/Flights'});
+  var kk = 'https://www.kayak.com/flights/' + enc(t.origin) + '-' + enc(t.destCode || t.destName)
+    + '/' + t.dep + (t.ret ? '/' + t.ret : '') + '/' + t.adults + 'adults?sort=price_a';
+  links.push({name:'Kayak', url:kk});
+  var ss = 'https://www.skyscanner.com/transport/flights/' + enc(t.origin).toLowerCase() + '/'
+    + enc(t.destCode || t.destName).toLowerCase() + '/' + ssDate(t.dep) + '/'
+    + (t.ret ? ssDate(t.ret) + '/' : '') + '?adultsv2=' + t.adults + '&cabinclass=' + ssCabin(t.cabin);
+  links.push({name:'Skyscanner', url:ss});
+  return links;
+}
+function ssDate(iso){ var p = iso.split('-'); return p[0].slice(2) + p[1] + p[2]; }
+function ssCabin(c){ c = (c||'').toLowerCase(); if(c.indexOf('premium')===0) return 'premium_economy'; if(c.indexOf('business')===0) return 'business'; if(c.indexOf('first')===0) return 'first'; return 'economy'; }
+
 (function(){
   var form = document.getElementById("tripForm");
   var btn = document.getElementById("tripSubmit");
   var status = document.getElementById("formStatus");
+  var finder = document.getElementById("finder");
+  var finderTitle = document.getElementById("finderTitle");
+  var finderNote = document.getElementById("finderNote");
+  var finderBody = document.getElementById("finderBody");
+  var siteRow = document.getElementById("siteRow");
+  var siteBtns = document.getElementById("siteBtns");
+  var finderTracked = document.getElementById("finderTracked");
   var depart = document.getElementById("fDepart");
   var ret = document.getElementById("fReturn");
   var today = new Date().toISOString().slice(0,10);
@@ -162,24 +289,51 @@ sortSel.addEventListener("change", function(){ sortMode = sortSel.value; localSt
     if(!dep){ show("Please pick a departure date.", false); return; }
     var email = v("fEmail");
     if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ show("That email address doesn't look right.", false); return; }
-    btn.disabled = true; btn.textContent = "Adding...";
+    var origin = (v("fHome") || "YYZ").toUpperCase();
+    var destCode = resolveCode(dest);
+    var trip = {
+      destination: dest, departDate: dep, returnDate: v("fReturn"),
+      homeAirport: origin, travelers: v("fTrav"), cabin: v("fCabin"),
+      nonstop: v("fStops") === "nonstop" ? "1" : "0",
+      targetPrice: v("fTarget"), email: email
+    };
+    btn.disabled = true; btn.textContent = "Searching...";
     status.className = "formstatus";
-    fetch(INTAKE_URL, {
-      method: "POST", mode: "no-cors",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        destination: dest, departDate: dep, returnDate: v("fReturn"),
-        homeAirport: v("fHome") || "YYZ", travelers: v("fTrav"),
-        cabin: v("fCabin"), nonstop: v("fStops") === "nonstop",
-        targetPrice: v("fTarget"), email: email
-      })
-    }).then(function(){
-      show("Added! This trip is now tracked — prices update here every morning.", true);
-      form.reset(); document.getElementById("fHome").value = "YYZ";
-      btn.disabled = false; btn.textContent = "Start tracking";
-    }).catch(function(){
-      show("Couldn't add the trip. Please check your connection and try again.", false);
-      btn.disabled = false; btn.textContent = "Start tracking";
+    finder.className = "finder show";
+    finderTitle.textContent = "Live prices: " + dest;
+    finderNote.textContent = origin + " → " + dest + " · " + fmtDate(dep) + (trip.returnDate ? " → " + fmtDate(trip.returnDate) : " · one-way");
+    finderBody.innerHTML = '<div class="floading"><span class="spin"></span>Searching live prices...</div>';
+    siteRow.style.display = "none"; finderTracked.style.display = "none";
+    finder.scrollIntoView({behavior:"smooth", block:"start"});
+
+    finderSearch(trip, function(data){
+      btn.disabled = false; btn.textContent = "Find flights";
+      var links = siteLinks({
+        origin: origin, destCode: destCode, destName: dest,
+        dep: dep, ret: trip.returnDate, adults: trip.travelers, cabin: trip.cabin
+      });
+      siteBtns.innerHTML = links.map(function(l){
+        return '<a class="sitebtn" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.name) + '</a>';
+      }).join('');
+      siteRow.style.display = "block";
+      if(data && data.ok){
+        finderTracked.textContent = "✓ Added to your tracked trips — prices update here every morning.";
+        finderTracked.style.display = "block";
+        form.reset(); document.getElementById("fHome").value = "YYZ";
+        if(data.live && data.offers && data.offers.length){
+          finderBody.innerHTML = data.offers.map(function(o){ return offerCard(o, parseInt(trip.travelers,10)||1); }).join('')
+            + '<div class="fnote">Live just now' + (data.cached ? ' · cached' : '') + ' · fares move fast, treat as a snapshot.</div>';
+        } else {
+          var why = data.reason === "no_key"
+            ? "Live price search isn't connected yet — compare on your sites below."
+            : data.reason === "no_airport_code"
+            ? "Add the 3-letter airport code as the destination for live prices — or compare on your sites below."
+            : "Couldn't pull live prices this time — compare on your sites below.";
+          finderBody.innerHTML = '<div class="floading">' + esc(why) + '</div>';
+        }
+      } else {
+        finderBody.innerHTML = '<div class="floading">Something went wrong — please try again.</div>';
+      }
     });
   });
 })();
@@ -227,7 +381,7 @@ function render(data){
     updatedLine.textContent = "Prices updated " + d.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " at " + d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
   }
   if(!data.trips.length){
-    wrap.innerHTML = '<div class="empty"><h2>No trips tracked yet</h2><p>Add your first trip with the form above, and this page will watch the price for you every day.</p></div>';
+    wrap.innerHTML = '<div class="empty"><h2>No trips tracked yet</h2><p>Find a flight with the form above — it will be tracked here every day from then on.</p></div>';
     return;
   }
   var fx = data.fx || {USD:1}, html = "";
