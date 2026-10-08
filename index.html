@@ -93,7 +93,7 @@
 <body>
 <div class="topbar">
   <div class="logo">✈</div>
-  <div><h1>Sarah’s Flight Tracker</h1><div class="sub">find it, track it, fly happy 💕</div></div>
+  <div><h1>Sarah’s Flight Tracker</h1><div class="sub">where is baby Sarah off to this time? 🐶✈️</div></div>
 </div>
 <div class="wrap">
   <div class="searchbar">
@@ -140,7 +140,7 @@
     <div class="fnote" id="finderNote"></div>
     <div id="finderBody"></div>
     <div class="emailrow" id="emailRow">
-      <p id="emailPrompt">Where should we send price-drop alerts?</p>
+      <p id="emailPrompt">Where should the puppy send price-drop alerts? 🐶</p>
       <div class="erow">
         <input id="emailInput" type="email" inputmode="email" placeholder="you@email.com">
         <button id="emailGo">Save</button>
@@ -154,10 +154,10 @@
     <div class="ftracked" id="finderTracked" style="display:none"></div>
   </div>
 
-  <div class="sechead">💕 My tracked flights</div>
+  <div class="sechead">🐾 My tracked flights</div>
   <div class="tracked" id="trackedBox">
     <div class="temail" id="trackedEmail"></div>
-    <div id="trackedList"><div class="tempty">Nothing tracked yet 💕<br>Search above and tap 💗 Track on any flight to watch its price ✈️</div></div>
+    <div id="trackedList"><div class="tempty">No adventures tracked yet 🐾<br>Search above and tap 💗 Track on any flight you love ✈️</div></div>
   </div>
 
   <footer>Prices are round-trip totals unless noted.<br>Fares move fast — a price is a snapshot, not a guarantee 💕</footer>
@@ -298,7 +298,7 @@ function watchFlight(idx, btn){
       price: o.price
     }, function(data){
       if(data && data.ok){
-        btn.textContent = '♥ Watching';
+        btn.textContent = '🐾 Watching';
         btn.className = 'watchbtn watching';
         loadTracked();
       } else {
@@ -358,7 +358,7 @@ function watchFlight(idx, btn){
     finder.className = "finder show";
     finderTitle.textContent = "Live prices: " + dest;
     finderNote.textContent = origin + " → " + dest + " · " + fmtDate(dep) + (_trip.ret ? " → " + fmtDate(_trip.ret) : " · one-way");
-    finderBody.innerHTML = '<div class="floading"><span class="spin"></span>Searching live prices...</div>';
+    finderBody.innerHTML = '<div class="floading"><span class="spin"></span>Sniffing out the best fares... 🐶</div>';
     siteRow.style.display = "none"; finderTracked.style.display = "none";
     trackTripBtn.disabled = false; trackTripBtn.textContent = "💕 Track this trip — alert me on price drops";
     finder.scrollIntoView({behavior:"smooth", block:"start"});
@@ -382,7 +382,7 @@ function watchFlight(idx, btn){
         if(data.live && data.offers && data.offers.length){
           _offers = data.offers;
           finderBody.innerHTML = data.offers.map(function(o, i){ return offerCard(o, i); }).join('')
-            + '<div class="fnote">Live just now' + (data.cached ? ' · cached' : '') + ' · fares move fast, treat as a snapshot.<br>Tap 💗 Track on any flight to watch its price daily ✨</div>';
+            + '<div class="fnote">Live just now' + (data.cached ? ' · cached' : '') + ' · fares move fast, treat as a snapshot.<br>Tap 💗 Track on any flight and we’ll sniff out price drops daily 🐾</div>';
         } else {
           _offers = [];
           var why = data.reason === "no_key"
@@ -409,7 +409,7 @@ function watchFlight(idx, btn){
         nonstop: _trip.nonstop, targetPrice: _trip.target, email: email
       }, function(data){
         if(data && data.ok){
-          finderTracked.textContent = "✓ Trip tracked — we'll check prices every morning and email " + email + " on drops.";
+          finderTracked.textContent = "✓ Trip tracked — we’ll keep our nose on it and email " + email + " when the price drops 🐶";
           finderTracked.style.display = "block";
           trackTripBtn.textContent = "✓ Trip tracked";
           loadTracked();
@@ -453,11 +453,11 @@ function loadTracked(){
   var emLine = document.getElementById("trackedEmail");
   if(!em){
     emLine.textContent = "";
-    box.innerHTML = '<div class="tempty">Add your email and your tracked flights will appear here 💕</div>';
+    box.innerHTML = '<div class="tempty">Add your email and your tracked flights will appear here 🐾</div>';
     return;
   }
   emLine.textContent = "Alerts go to " + em;
-  box.innerHTML = '<div class="tempty">Loading...</div>';
+  box.innerHTML = '<div class="tempty">Fetching your flights... 🐾</div>';
   api({action: 'list', email: em}, function(data){
     if(!data || !data.ok){
       box.innerHTML = '<div class="error">Could not load your tracked flights — please try again.</div>';
@@ -471,7 +471,7 @@ function loadTracked(){
       html += '<div class="tsec">Tracked trips</div>' + data.trips.map(tripCard).join('');
     }
     if(!html){
-      html = '<div class="tempty">Nothing tracked yet 💕<br>Search above and tap 💗 Track on any flight to watch its price ✈️</div>';
+      html = '<div class="tempty">No adventures tracked yet 🐾<br>Search above and tap 💗 Track on any flight you love ✈️</div>';
     }
     box.innerHTML = html;
   });
