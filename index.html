@@ -95,6 +95,19 @@
   .watchbtn.watching{border-color:var(--brand);color:#fff;background:linear-gradient(135deg,#ff7ba9,#e75480)}
   .bookbtn{display:inline-block;margin-top:8px;margin-left:6px;background:linear-gradient(135deg,#ff7ba9,#e75480);color:#fff;border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(231,84,128,.25)}
   .bookbtn:active{transform:scale(.96)}
+  .dealbadge{margin-top:6px;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;display:inline-block}
+  .dealbadge.good{background:#cdeccd;color:#1d6b2f}
+  .dealbadge.mid{background:#eee;color:#666}
+  .dealbadge.high{background:#fbe3a7;color:#8a5a00}
+  .flexbtn{margin-top:10px;width:100%;background:#fff;border:2px dashed var(--pink);color:var(--brand-deep);border-radius:999px;padding:11px;font-size:13.5px;font-weight:800;font-family:inherit;cursor:pointer;min-height:44px}
+  .flexbtn:disabled{opacity:.6}
+  .flexchips{display:flex;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+  .fchip{flex:0 0 auto;border:2px solid var(--line);background:#fff;border-radius:14px;padding:8px 12px;font-family:inherit;cursor:pointer;text-align:center;min-width:78px;min-height:56px}
+  .fchip .fd{display:block;font-size:12px;font-weight:800;color:var(--brand-deep)}
+  .fchip .fp{display:block;font-size:14.5px;font-weight:800;color:var(--brand);margin-top:2px}
+  .fchip.cheap{border-color:#4caf7d;background:#f4fbf5}
+  .fchip.sel{border-color:var(--pink);background:#fdeef4}
+  .fchip:disabled{opacity:.45;cursor:default}
   .siterow{margin-top:12px}
   .siterow .sitetitle{font-size:13.5px;font-weight:800;margin-bottom:8px;color:var(--brand-deep)}
   .sitebtns{display:flex;gap:8px;flex-wrap:wrap}
@@ -241,6 +254,10 @@
       <button class="cta" type="submit" id="tripSubmit">Find flights</button>
       <div class="formstatus" id="formStatus"></div>
     </form>
+    <div class="siterow" id="recentRow" style="display:none">
+      <div class="sitetitle">🕘 Recent searches</div>
+      <div class="sitebtns" id="recentBtns"></div>
+    </div>
   </div>
 
   <div class="finder" id="finder">
@@ -258,6 +275,9 @@
     <div class="siterow" id="siteRow" style="display:none">
       <div class="sitetitle">Compare on your sites</div>
       <div class="sitebtns" id="siteBtns"></div>
+      <button class="flexbtn" id="flexBtn" type="button">📅 Check nearby dates (±3 days)</button>
+      <div class="fnote" id="flexNote" style="display:none;margin-top:6px">each date checked uses a live search — easy on the button 🐶</div>
+      <div id="flexRow" style="display:none"></div>
       <button class="tracktrip" id="trackTripBtn">💕 Track this trip — alert me on price drops</button>
     </div>
     <div class="ftracked" id="finderTracked" style="display:none"></div>
@@ -651,6 +671,108 @@ function renderSafety(panel, data, destName){
     '<div class="sp-src">Advisories & safety scores: isitsafetotravel.org (daily) · Disasters: GDACS · Seasonal outlook: our own sniffing. Always double-check official sources before booking 💕</div>';
   panel.style.display = "block";
 }
+
+function fmtShort(iso){
+  if(!iso) return "";
+  return new Date(iso + "T12:00:00").toLocaleDateString("en-US", {month:"short", day:"numeric"});
+}
+
+/* ---------- recent searches ---------- */
+function getRecent(){ try { return JSON.parse(localStorage.getItem("sft-recent") || "[]"); } catch(e){ return []; } }
+function saveRecent(entry){
+  var r = getRecent().filter(function(x){
+    return !(x.origin === entry.origin && x.destCode === entry.destCode && x.dep === entry.dep && x.ret === entry.ret);
+  });
+  r.unshift(entry);
+  try { localStorage.setItem("sft-recent", JSON.stringify(r.slice(0, 5))); } catch(e){}
+  renderRecent();
+}
+function renderRecent(){
+  var box = document.getElementById("recentRow"), btns = document.getElementById("recentBtns");
+  if(!box || !btns) return;
+  var r = getRecent();
+  if(!r.length){ box.style.display = "none"; return; }
+  box.style.display = "block";
+  btns.innerHTML = "";
+  r.forEach(function(x){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "sitebtn"; b.textContent = x.label;
+    b.addEventListener("click", function(){ applyRecent(x); });
+    btns.appendChild(b);
+  });
+}
+function applyRecent(x){
+  document.getElementById("fHome").value = x.origin || "YYZ";
+  document.getElementById("fDest").value = x.destLabel || "";
+  _destCode = x.destCode || "";
+  window._destPickedCode = function(){ return _destCode; };
+  document.getElementById("fDepart").value = x.dep || "";
+  if(window.setTripType) window.setTripType(x.ret ? "round" : "oneway");
+  document.getElementById("fReturn").value = x.ret || "";
+  document.getElementById("tripForm").dispatchEvent(new Event("submit", {cancelable: true}));
+}
+
+/* ---------- good-deal badges ---------- */
+function dealBadges(origin, destCode){
+  api({action: "dealinfo", origin: origin, dest: destCode}, function(d){
+    if(!d || !d.ok || !d.count || d.count < 3 || !d.avg) return;
+    var boxes = document.querySelectorAll("#finderBody .ocard .opricebox");
+    _offers.forEach(function(o, i){
+      var box = boxes[i];
+      if(!box || box.querySelector(".dealbadge")) return;
+      var diff = Math.round(o.price - d.avg);
+      var pct = diff / d.avg;
+      var cls, txt;
+      if(pct <= -0.05){ cls = "good"; txt = "🔥 $" + Math.abs(diff) + " below 30-day avg"; }
+      else if(pct >= 0.05){ cls = "high"; txt = "⚠️ $" + diff + " above 30-day avg"; }
+      else { cls = "mid"; txt = "≈ 30-day average"; }
+      var div = document.createElement("div");
+      div.className = "dealbadge " + cls;
+      div.textContent = txt + " (" + d.count + " checks)";
+      box.appendChild(div);
+    });
+  });
+}
+
+/* ---------- flexible dates ---------- */
+document.getElementById("flexBtn").addEventListener("click", function(){
+  var btn = this, row = document.getElementById("flexRow"), note = document.getElementById("flexNote");
+  btn.disabled = true; btn.textContent = "📅 Sniffing nearby dates...";
+  row.style.display = "none"; row.innerHTML = "";
+  if(note) note.style.display = "block";
+  api({
+    action: "flexdates",
+    destination: _trip.destCode, departDate: _trip.dep, returnDate: _trip.ret || "",
+    homeAirport: _trip.origin, travelers: _trip.adults, cabin: _trip.cabin,
+    nonstop: _trip.nonstop
+  }, function(data){
+    btn.disabled = false; btn.textContent = "📅 Check nearby dates (±3 days)";
+    if(!data || !data.ok || !data.days){ return; }
+    var priced = data.days.filter(function(d){ return d.ok && d.minPrice != null; });
+    if(!priced.length){
+      row.innerHTML = '<div class="fnote">No luck on nearby dates this time 🐶</div>';
+      row.style.display = "block"; return;
+    }
+    var cheapest = Math.min.apply(null, priced.map(function(d){ return d.minPrice; }));
+    row.innerHTML = '<div class="flexchips">' + data.days.map(function(d){
+      if(!d.ok || d.minPrice == null)
+        return '<button type="button" class="fchip" disabled><span class="fd">' + esc(fmtShort(d.date)) + '</span><span class="fp">—</span></button>';
+      var cls = "fchip" + (d.minPrice === cheapest ? " cheap" : "") + (d.date === _trip.dep ? " sel" : "");
+      return '<button type="button" class="' + cls + '" data-d="' + d.date + '" data-r="' + (d.returnDate || "") + '">' +
+        '<span class="fd">' + esc(fmtShort(d.date)) + '</span><span class="fp">$' + Math.round(d.minPrice) + '</span></button>';
+    }).join("") + "</div>";
+    row.style.display = "block";
+    row.querySelectorAll(".fchip[data-d]").forEach(function(c){
+      c.addEventListener("click", function(){
+        document.getElementById("fDepart").value = c.getAttribute("data-d");
+        var r = c.getAttribute("data-r");
+        if(window.setTripType) window.setTripType(r ? "round" : "oneway");
+        document.getElementById("fReturn").value = r || "";
+        document.getElementById("tripForm").dispatchEvent(new Event("submit", {cancelable: true}));
+      });
+    });
+  });
+});
 var _offers = [], _trip = {};
 function fmtTime(t){
   var m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(t || "");
@@ -778,6 +900,8 @@ function watchFlight(idx, btn){
   }
   ttRound.addEventListener("click", function(){ setTripType("round"); });
   ttOne.addEventListener("click", function(){ setTripType("oneway"); });
+  window.setTripType = setTripType;
+  renderRecent();
   var savedEm = getEmail();
   if(savedEm) document.getElementById("fEmail").value = savedEm;
   function v(id){ var el=document.getElementById(id); return el?el.value.trim():""; }
@@ -809,6 +933,13 @@ function watchFlight(idx, btn){
     finderNote.textContent = origin + " → " + dest + " · " + fmtDate(dep) + (_trip.ret ? " → " + fmtDate(_trip.ret) : " · one-way");
     finderBody.innerHTML = '<div class="floading"><span class="spin"></span>Sniffing out the best fares... 🐶</div>';
     siteRow.style.display = "none"; finderTracked.style.display = "none";
+    var flexRow = document.getElementById("flexRow"), flexNote = document.getElementById("flexNote");
+    if(flexRow){ flexRow.style.display = "none"; flexRow.innerHTML = ""; }
+    if(flexNote){ flexNote.style.display = "none"; }
+    var flexBtn = document.getElementById("flexBtn");
+    if(flexBtn){ flexBtn.disabled = false; flexBtn.textContent = "📅 Check nearby dates (±3 days)"; }
+    saveRecent({origin: origin, destCode: destCode, destLabel: dest, dep: dep, ret: _trip.ret || "",
+      label: origin + " → " + (destCode || dest) + " · " + fmtShort(dep) + (_trip.ret ? " → " + fmtShort(_trip.ret) : "")});
     trackTripBtn.disabled = false; trackTripBtn.textContent = "💕 Track this trip — alert me on price drops";
     finder.scrollIntoView({behavior:"smooth", block:"start"});
 
@@ -832,6 +963,7 @@ function watchFlight(idx, btn){
           _offers = data.offers;
           finderBody.innerHTML = data.offers.map(function(o, i){ return offerCard(o, i); }).join('')
             + '<div class="fnote">Live just now' + (data.cached ? ' · cached' : '') + ' · fares move fast, treat as a snapshot.<br>Tap 💗 Track on any flight and we’ll sniff out price drops daily 🐾</div>';
+          dealBadges(origin, destCode);
         } else {
           _offers = [];
           var why = data.reason === "no_key"
