@@ -675,6 +675,7 @@ function gfUrl(t){
   var gf = 'https://www.google.com/travel/flights?q=Flights%20to%20' + enc(t.destCode || t.destName)
     + '%20from%20' + enc(t.origin) + '%20on%20' + t.dep;
   if(t.ret) gf += '%20round%20trip%20returning%20' + t.ret;
+  else gf += '%20oneway';
   return gf;
 }
 function siteLinks(t){
