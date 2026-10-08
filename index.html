@@ -31,6 +31,15 @@
   .frow{display:flex;gap:8px;margin-bottom:10px}
   .frow label{flex:1;font-size:11.5px;color:var(--muted);font-weight:700;display:block;min-width:0}
   .frow input,.frow select{width:100%;max-width:100%;min-width:0;margin-top:5px;font-size:16px;font-family:inherit;font-weight:600;padding:11px;border-radius:14px;border:2px solid var(--line);background:#fffafc;color:#5c2a42}
+  .acwrap{position:relative;display:block}
+  .acdrop{position:absolute;top:100%;left:0;right:0;z-index:60;background:#fff;border:2px solid var(--pink);border-radius:14px;margin-top:4px;box-shadow:0 8px 24px rgba(214,51,108,.18);overflow:hidden;max-height:300px;overflow-y:auto}
+  .acitem{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid #fbe4ee;padding:10px 12px;font-family:inherit;cursor:pointer;min-height:52px}
+  .acitem:last-child{border-bottom:0}
+  .acitem.active,.acitem:active{background:#fdeef4}
+  .acitem .ac-code{flex:0 0 auto;font-weight:800;font-size:13px;color:#fff;background:var(--pink);border-radius:8px;padding:4px 8px;letter-spacing:.5px}
+  .acitem .ac-main{flex:1;min-width:0}
+  .acitem .ac-city{display:block;font-weight:800;font-size:14.5px;color:#5c2a42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .acitem .ac-sub{display:block;font-weight:600;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* iOS gives native date pickers an unshrinkable minimum width that overlaps
      its neighbor in a flex row; opt out of the native control rendering so it
      respects the layout width (the picker still opens on tap) */
@@ -190,7 +199,7 @@
     <form id="tripForm" novalidate>
       <div class="frow">
         <label>From<input id="fHome" maxlength="3" value="YYZ" autocapitalize="characters"></label>
-        <label>To (city or code)<input id="fDest" placeholder="Paris" required></label>
+        <label>To (city or code)<span class="acwrap"><input id="fDest" placeholder="Paris" required autocomplete="off" autocapitalize="words"><span id="destDrop" class="acdrop" style="display:none"></span></span></label>
       </div>
       <div class="frow">
         <label>Depart<input id="fDepart" type="date" required></label>
@@ -267,6 +276,7 @@
 </div>
 <div id="courier" aria-hidden="true"><div class="cbubble">Off to fetch your deal! 🐾</div><br><div class="cdog">🐶🧳</div></div>
 
+<script src="airports.js"></script>
 <script>
 var FINDER_URL = "https://script.google.com/macros/s/AKfycbz_cVk4DtWpmjQ4NLVfDb1NcZTmchrt7nVzRWn4aqj2MvPOXjxTsB9Z98jURwE8SR0l/exec";
 
@@ -284,6 +294,83 @@ function resolveCode(dest){
   if(/^[a-zA-Z]{3}$/.test(dest)) return dest.toUpperCase();
   return (CITY_CODES[dest.toLowerCase()] || "").toUpperCase();
 }
+
+/* ---------- destination autocomplete ---------- */
+var _destCode = "";
+(function(){
+  var input = document.getElementById("fDest");
+  var drop = document.getElementById("destDrop");
+  if(!input || !drop || typeof AIRPORTS === "undefined") return;
+  var matches = [], activeIdx = -1;
+  function close(){ drop.style.display = "none"; drop.innerHTML = ""; matches = []; activeIdx = -1; }
+  function rank(q, a){
+    var code = a[0].toLowerCase(), city = a[1].toLowerCase(), name = a[2].toLowerCase(), ctry = a[3].toLowerCase();
+    if(code === q) return 0;
+    if(code.indexOf(q) === 0) return 1;
+    if(city === q) return 2;
+    if(city.indexOf(q) === 0) return 3;
+    if(name.indexOf(q) === 0) return 4;
+    if(city.indexOf(q) !== -1) return 5;
+    if(name.indexOf(q) !== -1) return 6;
+    if(ctry.indexOf(q) === 0) return 7;
+    return -1;
+  }
+  function search(q){
+    q = q.trim().toLowerCase();
+    close();
+    _destCode = "";
+    if(q.length < 2) return;
+    var scored = [];
+    for(var i = 0; i < AIRPORTS.length; i++){
+      var r = rank(q, AIRPORTS[i]);
+      if(r !== -1) scored.push([r, AIRPORTS[i]]);
+    }
+    scored.sort(function(a, b){ return a[0] - b[0]; });
+    matches = scored.slice(0, 8).map(function(s){ return s[1]; });
+    if(!matches.length) return;
+    drop.innerHTML = matches.map(function(a, i){
+      return '<button type="button" class="acitem" data-i="' + i + '">' +
+        '<span class="ac-code">' + esc(a[0]) + '</span>' +
+        '<span class="ac-main"><span class="ac-city">' + esc(a[1]) + '</span>' +
+        '<span class="ac-sub">' + esc(a[2]) + (a[3] ? ' · ' + esc(a[3]) : '') + '</span></span>' +
+        '</button>';
+    }).join('');
+    drop.style.display = "block";
+  }
+  function pick(i){
+    var a = matches[i];
+    if(!a) return;
+    _destCode = a[0];
+    input.value = a[1] + " (" + a[0] + ")";
+    close();
+    input.focus();
+  }
+  input.addEventListener("input", function(){ search(input.value); });
+  input.addEventListener("focus", function(){ if(input.value.trim().length >= 2 && !drop.innerHTML) search(input.value); });
+  input.addEventListener("keydown", function(e){
+    if(drop.style.display === "none") return;
+    if(e.key === "ArrowDown"){ e.preventDefault(); activeIdx = (activeIdx + 1) % matches.length; paint(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); activeIdx = (activeIdx - 1 + matches.length) % matches.length; paint(); }
+    else if(e.key === "Enter" && activeIdx >= 0){ e.preventDefault(); pick(activeIdx); }
+    else if(e.key === "Escape"){ close(); }
+  });
+  function paint(){
+    var els = drop.querySelectorAll(".acitem");
+    for(var i = 0; i < els.length; i++) els[i].classList.toggle("active", i === activeIdx);
+    if(els[activeIdx] && els[activeIdx].scrollIntoView) els[activeIdx].scrollIntoView({block: "nearest"});
+  }
+  drop.addEventListener("mousedown", function(e){ e.preventDefault(); });
+  drop.addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest(".acitem") : null;
+    if(b) pick(parseInt(b.getAttribute("data-i"), 10));
+  });
+  document.addEventListener("click", function(e){
+    if(!drop.contains(e.target) && e.target !== input) close();
+  });
+  var form = document.getElementById("tripForm");
+  if(form) form.addEventListener("submit", close);
+  window._destPickedCode = function(){ return _destCode; };
+})();
 
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function fmtDate(iso){
@@ -667,7 +754,7 @@ function watchFlight(idx, btn){
       setEmail(em);
     }
     var origin = (v("fHome") || "YYZ").toUpperCase();
-    var destCode = resolveCode(dest);
+    var destCode = (window._destPickedCode && window._destPickedCode()) || resolveCode(dest);
     _trip = {
       origin: origin, destName: dest, destCode: destCode,
       dep: dep, ret: v("fReturn"), adults: v("fTrav"), cabin: v("fCabin"),
