@@ -291,6 +291,8 @@ istanbul:"IST",cairo:"CAI",nairobi:"NBO","cape town":"CPT","rio de janeiro":"GIG
 havana:"HAV","punta cana":"PUJ","montego bay":"MBJ",honolulu:"HNL",maui:"OGG"};
 function resolveCode(dest){
   dest = (dest || "").trim();
+  var m = /\(([a-zA-Z]{3})\)\s*$/.exec(dest);
+  if(m) return m[1].toUpperCase();
   if(/^[a-zA-Z]{3}$/.test(dest)) return dest.toUpperCase();
   return (CITY_CODES[dest.toLowerCase()] || "").toUpperCase();
 }
@@ -772,7 +774,7 @@ function watchFlight(idx, btn){
 
     api({
       action: 'search',
-      destination: dest, departDate: dep, returnDate: _trip.ret,
+      destination: destCode || dest, departDate: dep, returnDate: _trip.ret,
       homeAirport: origin, travelers: _trip.adults, cabin: _trip.cabin,
       nonstop: _trip.nonstop
     }, function(data){
@@ -823,7 +825,7 @@ function watchFlight(idx, btn){
       trackTripBtn.disabled = true; trackTripBtn.textContent = "Tracking...";
       api({
         action: 'track_trip',
-        destination: _trip.destName, departDate: _trip.dep, returnDate: _trip.ret,
+        destination: _trip.destCode || _trip.destName, departDate: _trip.dep, returnDate: _trip.ret,
         homeAirport: _trip.origin, travelers: _trip.adults, cabin: _trip.cabin,
         nonstop: _trip.nonstop, targetPrice: _trip.target, email: email
       }, function(data){
