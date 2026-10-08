@@ -19,13 +19,21 @@
   .topbar h1{font-size:18px;font-weight:700;letter-spacing:-.2px}
   .topbar .sub{font-size:12px;opacity:.8}
   .wrap{max-width:680px;margin:0 auto;padding:14px 12px 60px}
-  /* Expedia-like search bar */
-  .searchbar{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.10);padding:12px;margin-bottom:12px}
-  .searchbar .row{display:flex;gap:8px}
-  .searchbar .field{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--muted);background:#f8fafd}
-  .searchbar .field b{color:#16283f;display:block;font-size:14px}
-  .searchbar .cta{margin-top:10px;width:100%;background:var(--brand);color:#fff;border:none;border-radius:999px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;display:block;text-align:center;text-decoration:none}
-  .searchbar .cta:active{background:var(--brand-dark)}
+  /* Expedia-like trip form */
+  .searchbar{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.10);padding:14px;margin-bottom:12px}
+  .formtitle{margin-bottom:10px}
+  .formtitle b{font-size:16px;display:block}
+  .formtitle span{font-size:12.5px;color:var(--muted)}
+  .frow{display:flex;gap:8px;margin-bottom:8px}
+  .frow label{flex:1;font-size:11.5px;color:var(--muted);font-weight:600;display:block;min-width:0}
+  .frow input,.frow select{width:100%;margin-top:4px;font-size:14px;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:#f8fafd;color:#16283f;font-weight:400}
+  .frow input:focus,.frow select:focus{outline:none;border-color:var(--brand);background:#fff}
+  .cta{margin-top:6px;width:100%;background:var(--brand);color:#fff;border:none;border-radius:999px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;display:block;text-align:center;text-decoration:none}
+  .cta:active{background:var(--brand-dark)}
+  .cta:disabled{opacity:.6;cursor:default}
+  .formstatus{display:none;margin-top:10px;font-size:13.5px;border-radius:10px;padding:10px 12px;line-height:1.5}
+  .formstatus.ok{display:block;background:var(--greenbg);color:var(--green)}
+  .formstatus.err{display:block;background:#fdecea;color:#9c2b2b}
   /* sort + currency toolbar */
   .toolbar{display:flex;align-items:center;gap:10px;margin:2px 2px 12px;flex-wrap:wrap}
   .toolbar label{font-size:13px;color:var(--muted)}
@@ -49,13 +57,10 @@
   .spark{padding:2px 16px 0}
   .spark svg{width:100%;height:52px;display:block}
   .spark-label{font-size:11px;color:var(--muted);padding:0 16px}
-  .card-foot{display:flex;gap:10px;padding:12px 16px 16px;align-items:center}
-  .btn{flex:1;background:var(--brand);color:#fff;border:none;border-radius:999px;padding:11px;font-size:14px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer}
-  .btn:active{background:var(--brand-dark)}
   .checked{font-size:11.5px;color:var(--muted);padding:0 16px 14px}
   .empty{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.08);text-align:center;padding:44px 22px}
   .empty h2{font-size:19px;margin-bottom:8px}
-  .empty p{font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+  .empty p{font-size:14px;color:var(--muted);line-height:1.6}
   .error{background:#fdecea;color:#9c2b2b;border-radius:12px;padding:16px;font-size:14px;line-height:1.5}
   footer{text-align:center;font-size:12px;color:var(--muted);padding:6px 20px 30px;line-height:1.7}
 </style>
@@ -67,11 +72,42 @@
 </div>
 <div class="wrap">
   <div class="searchbar">
-    <div class="row">
-      <div class="field"><b>Add a destination</b>Where to next?</div>
-      <div class="field"><b>Trip dates</b>Your estimate</div>
-    </div>
-    <a class="cta" id="addTripTop" href="#">Track a new trip</a>
+    <div class="formtitle"><b>Track a new trip</b><span>Add a destination and your estimated dates — prices get checked every morning.</span></div>
+    <form id="tripForm" novalidate>
+      <div class="frow">
+        <label>From<input id="fHome" maxlength="3" value="YYZ" autocapitalize="characters"></label>
+        <label>To (city)<input id="fDest" placeholder="Paris" required></label>
+      </div>
+      <div class="frow">
+        <label>Depart<input id="fDepart" type="date" required></label>
+        <label>Return<input id="fReturn" type="date"></label>
+      </div>
+      <div class="frow">
+        <label>Travelers
+          <select id="fTrav">
+            <option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6</option>
+          </select>
+        </label>
+        <label>Cabin
+          <select id="fCabin">
+            <option>Economy</option><option>Premium economy</option>
+            <option>Business</option><option>First</option>
+          </select>
+        </label>
+        <label>Stops
+          <select id="fStops">
+            <option value="any">Any</option><option value="nonstop">Nonstop only</option>
+          </select>
+        </label>
+      </div>
+      <div class="frow">
+        <label>Target price, USD (optional)<input id="fTarget" inputmode="decimal" placeholder="800"></label>
+        <label>Email for price-drop alerts (optional)<input id="fEmail" type="email" inputmode="email" placeholder="you@email.com"></label>
+      </div>
+      <button class="cta" type="submit" id="tripSubmit">Start tracking</button>
+      <div class="formstatus" id="formStatus"></div>
+    </form>
   </div>
   <div class="toolbar">
     <label for="sort">Sort</label>
@@ -95,8 +131,7 @@
 <footer>Prices are round-trip totals, checked daily.<br>Fares move fast — a tracked price is a snapshot, not a guarantee.</footer>
 
 <script>
-var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeKp8NWvNbb2t3RXibqySQd9EOyBKUKyaywc38ommOcz8WgKA/viewform";
-document.getElementById("addTripTop").href = FORM_URL;
+var INTAKE_URL = "https://script.google.com/macros/s/AKfycbzBiXMNCSLrBggXgJ2DBkubQC9-oixWYbMi6pQcqi4OL0UHdU7gw-dXha7DUR1WL8df/exec";
 
 var currency = localStorage.getItem("ft-currency") || "USD";
 var sortMode = localStorage.getItem("ft-sort") || "drop";
@@ -105,6 +140,49 @@ var sortSel = document.getElementById("sort");
 curSel.value = currency; sortSel.value = sortMode;
 curSel.addEventListener("change", function(){ currency = curSel.value; localStorage.setItem("ft-currency", currency); render(window._data); });
 sortSel.addEventListener("change", function(){ sortMode = sortSel.value; localStorage.setItem("ft-sort", sortMode); render(window._data); });
+
+/* Trip intake form */
+(function(){
+  var form = document.getElementById("tripForm");
+  var btn = document.getElementById("tripSubmit");
+  var status = document.getElementById("formStatus");
+  var depart = document.getElementById("fDepart");
+  var ret = document.getElementById("fReturn");
+  var today = new Date().toISOString().slice(0,10);
+  depart.min = today; ret.min = today;
+  function v(id){ var el=document.getElementById(id); return el?el.value.trim():""; }
+  function show(msg, ok){
+    status.textContent = msg;
+    status.className = "formstatus " + (ok ? "ok" : "err");
+  }
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var dest = v("fDest"), dep = v("fDepart");
+    if(!dest){ show("Please enter a destination city.", false); return; }
+    if(!dep){ show("Please pick a departure date.", false); return; }
+    var email = v("fEmail");
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ show("That email address doesn't look right.", false); return; }
+    btn.disabled = true; btn.textContent = "Adding...";
+    status.className = "formstatus";
+    fetch(INTAKE_URL, {
+      method: "POST", mode: "no-cors",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        destination: dest, departDate: dep, returnDate: v("fReturn"),
+        homeAirport: v("fHome") || "YYZ", travelers: v("fTrav"),
+        cabin: v("fCabin"), nonstop: v("fStops") === "nonstop",
+        targetPrice: v("fTarget"), email: email
+      })
+    }).then(function(){
+      show("Added! This trip is now tracked — prices update here every morning.", true);
+      form.reset(); document.getElementById("fHome").value = "YYZ";
+      btn.disabled = false; btn.textContent = "Start tracking";
+    }).catch(function(){
+      show("Couldn't add the trip. Please check your connection and try again.", false);
+      btn.disabled = false; btn.textContent = "Start tracking";
+    });
+  });
+})();
 
 function fmt(usd, fx){
   var rate = (fx && fx[currency]) || 1;
@@ -149,7 +227,7 @@ function render(data){
     updatedLine.textContent = "Prices updated " + d.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " at " + d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
   }
   if(!data.trips.length){
-    wrap.innerHTML = '<div class="empty"><h2>No trips tracked yet</h2><p>Add a destination and your estimated dates above, and this page will watch the price for you every day.</p><a class="btn" href="'+FORM_URL+'">Track your first trip</a></div>';
+    wrap.innerHTML = '<div class="empty"><h2>No trips tracked yet</h2><p>Add your first trip with the form above, and this page will watch the price for you every day.</p></div>';
     return;
   }
   var fx = data.fx || {USD:1}, html = "";
@@ -167,7 +245,6 @@ function render(data){
       + '</div><div class="pricebox"><div class="price">'+price+'</div><div class="per">round trip</div>'+badges+'</div></div>'
       + sparkline(t.history)
       + (t.history&&t.history.length>1?'<div class="spark-label">Price history · lowest '+fmt(Math.min.apply(null,t.history.map(function(p){return p.priceUSD;})),fx)+'</div>':"")
-      + '<div class="card-foot"><a class="btn" href="'+FORM_URL+'">Notify me of price drops</a></div>'
       + (t.lastChecked?'<div class="checked">Checked '+esc(t.lastChecked)+'</div>':"")
       + '</div>';
   });
