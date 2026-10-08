@@ -120,6 +120,33 @@
     80%{transform:translateX(80vw) translateY(0)}
     100%{transform:translateX(112vw) translateY(0)}
   }
+
+  /* compliment chatbot */
+  .chatfab{position:fixed;right:16px;bottom:16px;z-index:70;width:58px;height:58px;border-radius:50%;
+    background:linear-gradient(135deg,#ff7ba9,#e75480);border:none;font-size:26px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(231,84,128,.5);display:flex;align-items:center;justify-content:center}
+  .chatfab::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--brand);
+    opacity:.6;animation:fabPulse 2.4s ease-out infinite}
+  @keyframes fabPulse{0%{transform:scale(.85);opacity:.7}70%{transform:scale(1.15);opacity:0}100%{transform:scale(1.15);opacity:0}}
+  .chatpanel{position:fixed;right:12px;bottom:86px;z-index:70;width:min(320px,calc(100vw - 24px));
+    background:#fff;border:3px solid var(--brand);border-radius:22px;box-shadow:0 12px 32px rgba(231,84,128,.35);
+    display:none;flex-direction:column;overflow:hidden}
+  .chatpanel.open{display:flex;animation:chatUp .25s ease}
+  @keyframes chatUp{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+  .chathead{background:linear-gradient(135deg,#ff7ba9,#e75480);color:#fff;padding:12px 14px;
+    font-weight:800;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .chathead .x{margin-left:auto;background:none;border:none;color:#fff;font-size:20px;cursor:pointer;font-weight:800;line-height:1}
+  .chatbody{padding:12px;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;background:#fff7fa}
+  .chatmsg{max-width:88%;padding:9px 12px;border-radius:16px;font-size:13.5px;font-weight:600;line-height:1.45}
+  .chatmsg.bot{background:#fff;border:2px solid var(--line);color:#5c2a42;border-bottom-left-radius:6px;align-self:flex-start}
+  .chatmsg.me{background:linear-gradient(135deg,#ff7ba9,#e75480);color:#fff;border-bottom-right-radius:6px;align-self:flex-end}
+  .chatmsg.typing{opacity:.65}
+  .chatinput{display:flex;gap:8px;padding:10px;border-top:2px solid var(--line);background:#fff}
+  .chatinput input{flex:1;border:2px solid var(--line);border-radius:999px;padding:10px 14px;
+    font-size:13.5px;font-family:inherit;font-weight:600;color:#5c2a42;min-width:0}
+  .chatinput input:focus{outline:none;border-color:var(--brand)}
+  .chatinput button{background:linear-gradient(135deg,#ff7ba9,#e75480);color:#fff;border:none;border-radius:50%;
+    width:42px;height:42px;font-size:17px;cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -196,6 +223,15 @@
 </div>
 
 <div id="pupCard" aria-hidden="true"><div class="bubble"><span class="pup">🐶👍</span><span>Yay! Tracking this one! 🐾</span></div></div>
+<button class="chatfab" id="chatFab" aria-label="Open chat">💕</button>
+<div class="chatpanel" id="chatPanel">
+  <div class="chathead">🐶💕 Sunny’s corner <button class="x" id="chatClose" aria-label="Close chat">×</button></div>
+  <div class="chatbody" id="chatBody"></div>
+  <div class="chatinput">
+    <input id="chatText" placeholder="Say hi..." maxlength="200" autocomplete="off">
+    <button id="chatSend" aria-label="Send">➤</button>
+  </div>
+</div>
 <div id="courier" aria-hidden="true"><div class="cbubble">Off to fetch your deal! 🐾</div><br><div class="cdog">🐶🧳</div></div>
 
 <script>
@@ -278,6 +314,67 @@ function courierRun(){
   var el = document.getElementById('courier');
   el.classList.remove('run'); void el.offsetWidth; el.classList.add('run');
 }
+
+/* ---------- compliment chatbot (not helpful, just sweet) ---------- */
+var COMPLIMENTS = [
+  "You\u2019re the prettiest part of my whole day 💕",
+  "Just so you know \u2014 you\u2019re absolutely stunning.",
+  "I love your laugh more than cheap flights. And that\u2019s saying a LOT ✈️",
+  "You\u2019re smarter than my price-tracking algorithm 🐶",
+  "Every day with you feels like a vacation 💕",
+  "You\u2019re my favorite notification.",
+  "I\u2019d cross any timezone just to see you smile ✈️",
+  "You\u2019re cuter than a puppy with a boarding pass 🐶💕",
+  "You make my heart take off every single day ✈️💕",
+  "My favorite destination is wherever you are 💕",
+  "You\u2019re the best thing I never had to search for.",
+  "Thinking of you makes even layovers bearable 🐾"
+];
+var _lastCi = -1, _greeted = false;
+function chatScroll(){ var b = document.getElementById('chatBody'); b.scrollTop = b.scrollHeight; }
+function addMsg(text, who){
+  var d = document.createElement('div');
+  d.className = 'chatmsg ' + who;
+  d.textContent = text;
+  document.getElementById('chatBody').appendChild(d);
+  chatScroll();
+  return d;
+}
+function pickCompliment(){
+  var i;
+  do { i = Math.floor(Math.random() * COMPLIMENTS.length); } while (i === _lastCi);
+  _lastCi = i;
+  return COMPLIMENTS[i];
+}
+function toggleChat(open){
+  var p = document.getElementById('chatPanel');
+  var willOpen = (open === undefined) ? !p.classList.contains('open') : open;
+  p.classList.toggle('open', willOpen);
+  if(willOpen && !_greeted){
+    _greeted = true;
+    setTimeout(function(){ addMsg("miss you boyfriend? 🥺", "bot"); }, 350);
+  }
+  if(willOpen){ setTimeout(function(){ document.getElementById('chatText').focus(); }, 300); }
+}
+function sendChat(){
+  var inp = document.getElementById('chatText');
+  var v = inp.value.trim();
+  if(!v) return;
+  inp.value = '';
+  addMsg(v, 'me');
+  var typing = addMsg('…', 'bot');
+  typing.classList.add('typing');
+  setTimeout(function(){
+    typing.remove();
+    addMsg(pickCompliment(), 'bot');
+  }, 900);
+}
+document.getElementById('chatFab').addEventListener('click', function(){ toggleChat(); });
+document.getElementById('chatClose').addEventListener('click', function(){ toggleChat(false); });
+document.getElementById('chatSend').addEventListener('click', sendChat);
+document.getElementById('chatText').addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){ e.preventDefault(); sendChat(); }
+});
 
 /* ---------- search (read-only) ---------- */
 var _offers = [], _trip = {};
