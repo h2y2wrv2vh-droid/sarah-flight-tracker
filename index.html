@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Flight Tracker</title>
+<style>
+  :root{
+    --brand:#123a6d; --brand-dark:#0d2c54; --accent:#f2a900;
+    --bg:#eef2f7; --card:#ffffff; --muted:#5a6b82; --line:#dbe3ee;
+    --green:#147a3e; --greenbg:#e3f4e9; --amber:#96590a; --amberbg:#fdf0d7;
+    --red:#b3261e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#16283f;-webkit-text-size-adjust:100%}
+  .topbar{background:var(--brand);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+  .topbar .logo{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:var(--brand-dark)}
+  .topbar h1{font-size:18px;font-weight:700;letter-spacing:-.2px}
+  .topbar .sub{font-size:12px;opacity:.8}
+  .wrap{max-width:680px;margin:0 auto;padding:14px 12px 60px}
+  /* Expedia-like search bar */
+  .searchbar{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.10);padding:12px;margin-bottom:12px}
+  .searchbar .row{display:flex;gap:8px}
+  .searchbar .field{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--muted);background:#f8fafd}
+  .searchbar .field b{color:#16283f;display:block;font-size:14px}
+  .searchbar .cta{margin-top:10px;width:100%;background:var(--brand);color:#fff;border:none;border-radius:999px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;display:block;text-align:center;text-decoration:none}
+  .searchbar .cta:active{background:var(--brand-dark)}
+  /* sort + currency toolbar */
+  .toolbar{display:flex;align-items:center;gap:10px;margin:2px 2px 12px;flex-wrap:wrap}
+  .toolbar label{font-size:13px;color:var(--muted)}
+  select{font-size:14px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:#16283f}
+  .spacer{flex:1}
+  .updated{font-size:12px;color:var(--muted);margin:0 2px 10px}
+  /* flight-result style cards */
+  .card{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.08);margin-bottom:12px;overflow:hidden}
+  .card-main{display:flex;gap:12px;padding:16px 16px 6px}
+  .route{flex:1;min-width:0}
+  .dest{font-size:19px;font-weight:800;letter-spacing:-.3px}
+  .ports{font-size:13px;color:var(--muted);margin-top:2px}
+  .tripmeta{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.55}
+  .pricebox{text-align:right;flex-shrink:0}
+  .price{font-size:27px;font-weight:800;color:var(--brand-dark);letter-spacing:-.5px}
+  .per{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;margin-top:8px}
+  .badge.drop{background:var(--greenbg);color:var(--green)}
+  .badge.stale{background:var(--amberbg);color:var(--amber)}
+  .airline{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .spark{padding:2px 16px 0}
+  .spark svg{width:100%;height:52px;display:block}
+  .spark-label{font-size:11px;color:var(--muted);padding:0 16px}
+  .card-foot{display:flex;gap:10px;padding:12px 16px 16px;align-items:center}
+  .btn{flex:1;background:var(--brand);color:#fff;border:none;border-radius:999px;padding:11px;font-size:14px;font-weight:700;text-align:center;text-decoration:none;cursor:pointer}
+  .btn:active{background:var(--brand-dark)}
+  .checked{font-size:11.5px;color:var(--muted);padding:0 16px 14px}
+  .empty{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(13,44,84,.08);text-align:center;padding:44px 22px}
+  .empty h2{font-size:19px;margin-bottom:8px}
+  .empty p{font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+  .error{background:#fdecea;color:#9c2b2b;border-radius:12px;padding:16px;font-size:14px;line-height:1.5}
+  footer{text-align:center;font-size:12px;color:var(--muted);padding:6px 20px 30px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">✈</div>
+  <div><h1>Flight Tracker</h1><div class="sub">Daily price watch for your wishlist</div></div>
+</div>
+<div class="wrap">
+  <div class="searchbar">
+    <div class="row">
+      <div class="field"><b>Add a destination</b>Where to next?</div>
+      <div class="field"><b>Trip dates</b>Your estimate</div>
+    </div>
+    <a class="cta" id="addTripTop" href="#">Track a new trip</a>
+  </div>
+  <div class="toolbar">
+    <label for="sort">Sort</label>
+    <select id="sort">
+      <option value="drop">Biggest drop</option>
+      <option value="price">Lowest price</option>
+      <option value="date">Soonest trip</option>
+    </select>
+    <div class="spacer"></div>
+    <label for="currency">Currency</label>
+    <select id="currency">
+      <option value="USD">USD $</option>
+      <option value="CAD">CAD $</option>
+      <option value="EUR">EUR €</option>
+      <option value="GBP">GBP £</option>
+    </select>
+  </div>
+  <div class="updated" id="updatedLine"></div>
+  <div id="cards"></div>
+</div>
+<footer>Prices are round-trip totals, checked daily.<br>Fares move fast — a tracked price is a snapshot, not a guarantee.</footer>
+
+<script>
+var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeKp8NWvNbb2t3RXibqySQd9EOyBKUKyaywc38ommOcz8WgKA/viewform";
+document.getElementById("addTripTop").href = FORM_URL;
+
+var currency = localStorage.getItem("ft-currency") || "USD";
+var sortMode = localStorage.getItem("ft-sort") || "drop";
+var curSel = document.getElementById("currency");
+var sortSel = document.getElementById("sort");
+curSel.value = currency; sortSel.value = sortMode;
+curSel.addEventListener("change", function(){ currency = curSel.value; localStorage.setItem("ft-currency", currency); render(window._data); });
+sortSel.addEventListener("change", function(){ sortMode = sortSel.value; localStorage.setItem("ft-sort", sortMode); render(window._data); });
+
+function fmt(usd, fx){
+  var rate = (fx && fx[currency]) || 1;
+  try { return new Intl.NumberFormat("en-US",{style:"currency",currency:currency,maximumFractionDigits:0}).format(usd*rate); }
+  catch(e){ return Math.round(usd*rate) + " " + currency; }
+}
+function fmtDate(iso){
+  if(!iso) return "";
+  return new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+}
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function sparkline(history){
+  if(!history || history.length<2) return "";
+  var w=300,h=52,pad=6;
+  var prices=history.map(function(p){return p.priceUSD;});
+  var min=Math.min.apply(null,prices), max=Math.max.apply(null,prices), span=(max-min)||1;
+  var pts=prices.map(function(p,i){
+    var x=pad+(i/(prices.length-1))*(w-pad*2);
+    var y=h-pad-((p-min)/span)*(h-pad*2);
+    return x.toFixed(1)+","+y.toFixed(1);
+  }).join(" ");
+  var color = prices[prices.length-1] < prices[0] ? "#147a3e" : (prices[prices.length-1] > prices[0] ? "#b3261e" : "#5a6b82");
+  return '<div class="spark"><svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+}
+function sortedTrips(trips){
+  var arr = trips.slice();
+  if(sortMode==="price") arr.sort(function(a,b){ return (a.currentPriceUSD==null?1e12:a.currentPriceUSD)-(b.currentPriceUSD==null?1e12:b.currentPriceUSD); });
+  else if(sortMode==="date") arr.sort(function(a,b){ return (a.departDate||"9999").localeCompare(b.departDate||"9999"); });
+  else arr.sort(function(a,b){ return (a.dropPct7d==null?0:a.dropPct7d)-(b.dropPct7d==null?0:b.dropPct7d); });
+  return arr;
+}
+function render(data){
+  window._data = data;
+  var wrap = document.getElementById("cards");
+  var updatedLine = document.getElementById("updatedLine");
+  if(!data || !data.trips){
+    wrap.innerHTML = '<div class="error">Could not load tracker data. Please try again later.</div>';
+    return;
+  }
+  if(data.updatedAt){
+    var d=new Date(data.updatedAt);
+    updatedLine.textContent = "Prices updated " + d.toLocaleDateString("en-US",{month:"short",day:"numeric"}) + " at " + d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+  }
+  if(!data.trips.length){
+    wrap.innerHTML = '<div class="empty"><h2>No trips tracked yet</h2><p>Add a destination and your estimated dates above, and this page will watch the price for you every day.</p><a class="btn" href="'+FORM_URL+'">Track your first trip</a></div>';
+    return;
+  }
+  var fx = data.fx || {USD:1}, html = "";
+  sortedTrips(data.trips).forEach(function(t){
+    var price = t.currentPriceUSD!=null ? fmt(t.currentPriceUSD, fx) : "—";
+    var dates = fmtDate(t.departDate) + (t.returnDate ? " → " + fmtDate(t.returnDate) : " (one-way)");
+    var badges = "";
+    if(t.dropPct7d!=null && t.dropPct7d<=-5) badges += '<span class="badge drop">↓ '+Math.abs(Math.round(t.dropPct7d))+'% this week</span> ';
+    if(t.checkOk===false) badges += '<span class="badge stale">Check failed — last price shown</span>';
+    html += '<div class="card"><div class="card-main"><div class="route">'
+      + '<div class="dest">'+esc(t.destination)+'</div>'
+      + '<div class="ports">'+esc(t.homeAirport)+' → '+esc(t.destAirport)+'</div>'
+      + '<div class="tripmeta">'+esc(dates)+'<br>'+esc(t.adults)+(t.adults==1?" traveler":" travelers")+' · '+esc(t.cabin)+(t.maxStops===0?" · Nonstop":"")+'</div>'
+      + (t.cheapestAirline?'<div class="airline">Best fare: '+esc(t.cheapestAirline)+'</div>':"")
+      + '</div><div class="pricebox"><div class="price">'+price+'</div><div class="per">round trip</div>'+badges+'</div></div>'
+      + sparkline(t.history)
+      + (t.history&&t.history.length>1?'<div class="spark-label">Price history · lowest '+fmt(Math.min.apply(null,t.history.map(function(p){return p.priceUSD;})),fx)+'</div>':"")
+      + '<div class="card-foot"><a class="btn" href="'+FORM_URL+'">Notify me of price drops</a></div>'
+      + (t.lastChecked?'<div class="checked">Checked '+esc(t.lastChecked)+'</div>':"")
+      + '</div>';
+  });
+  wrap.innerHTML = html;
+}
+fetch("prices.json",{cache:"no-store"})
+  .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
+  .then(render).catch(function(){ render(null); });
+</script>
+</body>
+</html>
