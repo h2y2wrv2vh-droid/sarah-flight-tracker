@@ -31,6 +31,10 @@
   .frow{display:flex;gap:8px;margin-bottom:10px}
   .frow label{flex:1;font-size:11.5px;color:var(--muted);font-weight:700;display:block;min-width:0}
   .frow input,.frow select{width:100%;max-width:100%;min-width:0;margin-top:5px;font-size:16px;font-family:inherit;font-weight:600;padding:11px;border-radius:14px;border:2px solid var(--line);background:#fffafc;color:#5c2a42}
+  .frow input:disabled{opacity:.35;background:#f6f0f3}
+  .triptype{display:flex;background:#fbe4ee;border-radius:999px;padding:4px;margin-bottom:10px;gap:4px}
+  .ttbtn{flex:1;border:0;background:transparent;border-radius:999px;padding:10px;font-family:inherit;font-size:14px;font-weight:800;color:var(--brand-deep);cursor:pointer;min-height:44px}
+  .ttbtn.on{background:linear-gradient(135deg,#ff7ba9,#e75480);color:#fff;box-shadow:0 2px 8px rgba(231,84,128,.3)}
   .acwrap{position:relative;display:block}
   .acdrop{position:absolute;top:100%;left:0;right:0;z-index:60;background:#fff;border:2px solid var(--pink);border-radius:14px;margin-top:4px;box-shadow:0 8px 24px rgba(214,51,108,.18);overflow:hidden;max-height:300px;overflow-y:auto}
   .acitem{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid #fbe4ee;padding:10px 12px;font-family:inherit;cursor:pointer;min-height:52px}
@@ -199,6 +203,10 @@
   <div class="searchbar">
     <div class="formtitle"><b>✈️ Find flights</b><span>See live prices now — tap 💗 Track on any flight you love.</span></div>
     <form id="tripForm" novalidate>
+      <div class="triptype" role="group" aria-label="Trip type">
+        <button type="button" id="ttRound" class="ttbtn on">🔁 Round-trip</button>
+        <button type="button" id="ttOne" class="ttbtn">➡️ One-way</button>
+      </div>
       <div class="frow">
         <label>From<input id="fHome" maxlength="3" value="YYZ" autocapitalize="characters"></label>
         <label>To (city or code)<span class="acwrap"><input id="fDest" placeholder="Paris" required autocomplete="off" autocapitalize="words"><span id="destDrop" class="acdrop" style="display:none"></span></span></label>
@@ -746,6 +754,18 @@ function watchFlight(idx, btn){
   var ret = document.getElementById("fReturn");
   var today = new Date().toISOString().slice(0,10);
   depart.min = today; ret.min = today;
+  var ttRound = document.getElementById("ttRound"), ttOne = document.getElementById("ttOne");
+  var stashedRet = "";
+  window._tripType = "round";
+  function setTripType(t){
+    window._tripType = t;
+    ttRound.classList.toggle("on", t === "round");
+    ttOne.classList.toggle("on", t === "oneway");
+    if(t === "oneway"){ stashedRet = ret.value; ret.value = ""; ret.disabled = true; }
+    else { ret.disabled = false; if(stashedRet) ret.value = stashedRet; }
+  }
+  ttRound.addEventListener("click", function(){ setTripType("round"); });
+  ttOne.addEventListener("click", function(){ setTripType("oneway"); });
   var savedEm = getEmail();
   if(savedEm) document.getElementById("fEmail").value = savedEm;
   function v(id){ var el=document.getElementById(id); return el?el.value.trim():""; }
