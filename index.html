@@ -89,6 +89,8 @@
   .watchbtn:active{transform:scale(.96)}
   .watchbtn:disabled{opacity:.6;cursor:default}
   .watchbtn.watching{border-color:var(--brand);color:#fff;background:linear-gradient(135deg,#ff7ba9,#e75480)}
+  .bookbtn{display:inline-block;margin-top:8px;margin-left:6px;background:linear-gradient(135deg,#ff7ba9,#e75480);color:#fff;border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(231,84,128,.25)}
+  .bookbtn:active{transform:scale(.96)}
   .siterow{margin-top:12px}
   .siterow .sitetitle{font-size:13.5px;font-weight:800;margin-bottom:8px;color:var(--brand-deep)}
   .sitebtns{display:flex;gap:8px;flex-wrap:wrap}
@@ -665,15 +667,20 @@ function offerCard(o, idx){
     + '<div class="opricebox"><div class="oprice">$' + esc(o.price) + '</div>'
     + '<div class="oper">total</div>'
     + '<button class="watchbtn" data-idx="' + idx + '" onclick="watchFlight(' + idx + ', this)">+ Track</button>'
+    + '<a class="bookbtn" href="' + esc(gfUrl(_trip)) + '" target="_blank" rel="noopener">🎫 Book</a>'
     + '</div></div>';
+}
+function gfUrl(t){
+  var enc = encodeURIComponent;
+  var gf = 'https://www.google.com/travel/flights?q=Flights%20to%20' + enc(t.destCode || t.destName)
+    + '%20from%20' + enc(t.origin) + '%20on%20' + t.dep;
+  if(t.ret) gf += '%20round%20trip%20returning%20' + t.ret;
+  return gf;
 }
 function siteLinks(t){
   var enc = encodeURIComponent;
   var links = [];
-  var gf = 'https://www.google.com/travel/flights?q=Flights%20to%20' + enc(t.destCode || t.destName)
-    + '%20from%20' + enc(t.origin) + '%20on%20' + t.dep;
-  if(t.ret) gf += '%20round%20trip%20returning%20' + t.ret;
-  links.push({name:'Google Flights', url:gf});
+  links.push({name:'Google Flights', url:gfUrl(t)});
   links.push({name:'Expedia', url:'https://www.expedia.com/Flights'});
   var kk = 'https://www.kayak.com/flights/' + enc(t.origin) + '-' + enc(t.destCode || t.destName)
     + '/' + t.dep + (t.ret ? '/' + t.ret : '') + '/' + t.adults + 'adults?sort=price_a';
