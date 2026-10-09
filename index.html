@@ -73,8 +73,8 @@
   #safetyPanel .sp-scale{margin:8px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.05)}
   #safetyPanel .sp-scale-label{font-weight:800;font-size:13.5px;margin-bottom:6px}
   #safetyPanel .sp-faces{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
-  #safetyPanel .sp-face{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid var(--pink,#d6336c)}
-  #safetyPanel .sp-face.off{filter:grayscale(1);opacity:.22;border-color:#d8d8d8}
+  #safetyPanel .sp-face{font-size:22px;line-height:1.25}
+  #safetyPanel .sp-face.off{filter:grayscale(1);opacity:.22}
   #safetyPanel .sp-scale-num{font-size:12.5px;color:var(--muted,#777)}
   #safetyPanel .sp-row{margin:7px 0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.05)}
   #safetyPanel .sp-row .sp-tag{display:inline-block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:1px 8px;border-radius:999px;margin-right:6px;vertical-align:1px}
@@ -667,10 +667,10 @@ function renderSafety(panel, data, destName){
     var sc = Math.max(0, Math.min(10, Math.round(Number(data.safety.score))));
     var faces = '';
     for (var fi = 0; fi < 10; fi++) {
-      faces += '<img class="sp-face' + (fi < sc ? '' : ' off') + '" src="images/sunny-face.jpg" alt=""/>';
+      faces += '<span class="sp-face' + (fi < sc ? '' : ' off') + '">☀️</span>';
     }
     var unit = sc === 1 ? 'happy sunny' : 'happy sunnys';
-    scaleHtml = '<div class="sp-scale"><div class="sp-scale-label">☀️ Sunny\'s safety scale</div>' +
+    scaleHtml = '<div class="sp-scale"><div class="sp-scale-label">Sunny\'s safety scale</div>' +
       '<div class="sp-faces">' + faces + '</div>' +
       '<div class="sp-scale-num"><b>' + sc + '</b> ' + unit + ' / 10</div></div>';
   }
