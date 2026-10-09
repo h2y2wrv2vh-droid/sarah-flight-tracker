@@ -224,7 +224,7 @@ h1{font-size:20px;color:#d6336c}
 </head>
 <body>
 <div class="wrap">
-  <h1>☀️ Sunny's safety scale — test page</h1>
+  <h1>🌞 Sunny's safety scale — test page</h1>
   <div class="note">This page calls <b>only</b> the safety-check backend — <b>0 flight-search tokens used</b>, no matter how many times you tap. Pick a destination to see its real safety scale.</div>
   <div class="btns">
     <button data-dest="MBJ">🇯🇲 Jamaica</button>
@@ -303,7 +303,7 @@ function renderSafety(panel, data, destName){
     var sc = Math.max(0, Math.min(10, Math.round(Number(data.safety.score))));
     var faces = '';
     for (var fi = 0; fi < 10; fi++) {
-      faces += '<span class="sp-face' + (fi < sc ? '' : ' off') + '">☀️</span>';
+      faces += '<span class="sp-face' + (fi < sc ? '' : ' off') + '">🌞</span>';
     }
     var unit = sc === 1 ? 'happy sunny' : 'happy sunnys';
     scaleHtml = '<div class="sp-scale"><div class="sp-scale-label">Sunny\'s safety scale</div>' +

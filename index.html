@@ -667,7 +667,7 @@ function renderSafety(panel, data, destName){
     var sc = Math.max(0, Math.min(10, Math.round(Number(data.safety.score))));
     var faces = '';
     for (var fi = 0; fi < 10; fi++) {
-      faces += '<span class="sp-face' + (fi < sc ? '' : ' off') + '">☀️</span>';
+      faces += '<span class="sp-face' + (fi < sc ? '' : ' off') + '">🌞</span>';
     }
     var unit = sc === 1 ? 'happy sunny' : 'happy sunnys';
     scaleHtml = '<div class="sp-scale"><div class="sp-scale-label">Sunny\'s safety scale</div>' +
