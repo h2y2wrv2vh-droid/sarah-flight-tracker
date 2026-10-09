@@ -70,6 +70,12 @@
   #safetyPanel .sp-score.s-ok{background:#cdeccd;color:#1d6b2f}
   #safetyPanel .sp-score.s-warn{background:#fbe3a7;color:#8a5a00}
   #safetyPanel .sp-score.s-danger{background:#f6c1c1;color:#a02020}
+  #safetyPanel .sp-scale{margin:8px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.05)}
+  #safetyPanel .sp-scale-label{font-weight:800;font-size:13.5px;margin-bottom:6px}
+  #safetyPanel .sp-faces{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+  #safetyPanel .sp-face{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid var(--pink,#d6336c)}
+  #safetyPanel .sp-face.off{filter:grayscale(1);opacity:.22;border-color:#d8d8d8}
+  #safetyPanel .sp-scale-num{font-size:12.5px;color:var(--muted,#777)}
   #safetyPanel .sp-row{margin:7px 0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.05)}
   #safetyPanel .sp-row .sp-tag{display:inline-block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:1px 8px;border-radius:999px;margin-right:6px;vertical-align:1px}
   #safetyPanel .sp-tag.t-ok{background:#cdeccd;color:#1d6b2f}
@@ -656,16 +662,26 @@ function renderSafety(panel, data, destName){
   });
 
   var cls = sev === 2 ? 'sp-danger' : sev === 1 ? 'sp-warn' : 'sp-ok';
-  var scoreCls = sev === 2 ? 's-danger' : sev === 1 ? 's-warn' : 's-ok';
-  var scoreHtml = (data.safety && data.safety.score != null)
-    ? '<span class="sp-score ' + scoreCls + '">safety ' + esc(String(data.safety.score)) + '/10</span>' : '';
+  var scaleHtml = '';
+  if (data.safety && data.safety.score != null) {
+    var sc = Math.max(0, Math.min(10, Math.round(Number(data.safety.score))));
+    var faces = '';
+    for (var fi = 0; fi < 10; fi++) {
+      faces += '<img class="sp-face' + (fi < sc ? '' : ' off') + '" src="images/sunny-face.jpg" alt=""/>';
+    }
+    var unit = sc === 1 ? 'happy sunny' : 'happy sunnys';
+    scaleHtml = '<div class="sp-scale"><div class="sp-scale-label">☀️ Sunny\'s safety scale</div>' +
+      '<div class="sp-faces">' + faces + '</div>' +
+      '<div class="sp-scale-num"><b>' + sc + '</b> ' + unit + ' / 10</div></div>';
+  }
   var head = sev === 0
     ? 'All clear! Sniffed around and found nothing scary for your dates 🐾'
     : sev === 1
     ? 'A few things to sniff at before you book 👀'
     : 'Heads up, babe — read this before you book 🚨';
   panel.className = cls;
-  panel.innerHTML = '<div class="sp-title">🐶 Safety sniff-check: ' + esc(data.country || destName) + ' ' + scoreHtml + '</div>' +
+  panel.innerHTML = '<div class="sp-title">🐶 Safety sniff-check: ' + esc(data.country || destName) + '</div>' +
+    scaleHtml +
     '<div style="font-weight:700;margin-bottom:4px">' + head + '</div>' +
     rows.join('') +
     '<div class="sp-src">Advisories & safety scores: isitsafetotravel.org (daily) · Disasters: GDACS · Seasonal outlook: our own sniffing. Always double-check official sources before booking 💕</div>';
