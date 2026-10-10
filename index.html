@@ -234,7 +234,7 @@
   <div><h1>Sarah’s Flight Tracker</h1><div class="sub">where is baby Sarah off to this time? 🐶✈️</div></div>
 </div>
 <div class="wrap">
-  <div id="installHint">📲 Add me to your home screen for the full app feel — tap ⋮ → “Add to Home screen” 💕<button id="installDismiss" aria-label="Dismiss">×</button></div>
+  <div id="installHint"><span id="installText"></span><button id="installDismiss" aria-label="Dismiss">×</button></div>
   <div class="searchbar">
     <div class="formtitle"><b>✈️ Find flights</b><span>See live prices now — tap 💗 Track on any flight you love.</span></div>
     <form id="tripForm" novalidate>
@@ -1185,6 +1185,11 @@ function loadSparklines(){
   if(!el) return;
   var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone;
   if(standalone || localStorage.getItem("sft-install-dismissed")) return;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  document.getElementById("installText").textContent = isIOS
+    ? "📲 Add me to your home screen: open this page in Safari, then tap Share ⬆️ → “Add to Home Screen” 💕"
+    : "📲 Add me to your home screen for the full app feel — tap ⋮ → “Add to Home screen” 💕";
   el.style.display = "block";
   document.getElementById("installDismiss").addEventListener("click", function(){
     try{ localStorage.setItem("sft-install-dismissed", "1"); }catch(e){}
