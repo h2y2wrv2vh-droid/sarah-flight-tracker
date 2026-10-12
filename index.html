@@ -456,6 +456,17 @@ function api(params, cb){
   document.head.appendChild(s);
 }
 
+/* ---------- SerpApi monthly quota display (free tier: 250 searches/month) ---------- */
+function quotaResetLabel(data){
+  return (data && data.usage && data.usage.resets) ? data.usage.resets : "the 1st";
+}
+function usageNote(data){
+  var u = data && data.usage;
+  if(!u || !u.limit) return "";
+  if(u.used < Math.floor(u.limit * 0.7)) return "";
+  return '<br>🔋 ' + u.used + ' of ' + u.limit + ' free live searches used this month · resets ' + esc(quotaResetLabel(data));
+}
+
 /* ---------- email capture (inline, shown when needed) ---------- */
 var _emailCb = null;
 function ensureEmail(cb){
@@ -782,13 +793,19 @@ document.getElementById("flexBtn").addEventListener("click", function(){
   }, function(data){
     btn.disabled = false; btn.textContent = "📅 Check nearby dates (±3 days)";
     if(!data || !data.ok || !data.days){ return; }
+    var notice = "";
+    if(data.quotaPaused){
+      notice = '<div class="fnote">📅 Nearby dates are resting to protect this month’s free searches'
+        + ' (' + (data.usage ? data.usage.used : '?') + ' of 250 used — resets ' + esc(quotaResetLabel(data)) + ').'
+        + ' Single searches still work, and your tracked trips keep getting their daily email checks 🐶</div>';
+    }
     var priced = data.days.filter(function(d){ return d.ok && d.minPrice != null; });
     if(!priced.length){
-      row.innerHTML = '<div class="fnote">No luck on nearby dates this time 🐶</div>';
+      row.innerHTML = notice || '<div class="fnote">No luck on nearby dates this time 🐶</div>';
       row.style.display = "block"; return;
     }
     var cheapest = Math.min.apply(null, priced.map(function(d){ return d.minPrice; }));
-    row.innerHTML = '<div class="flexchips">' + data.days.map(function(d){
+    row.innerHTML = notice + '<div class="flexchips">' + data.days.map(function(d){
       if(!d.ok || d.minPrice == null)
         return '<button type="button" class="fchip" disabled><span class="fd">' + esc(fmtShort(d.date)) + '</span><span class="fp">—</span></button>';
       var cls = "fchip" + (d.minPrice === cheapest ? " cheap" : "") + (d.date === _trip.dep ? " sel" : "");
@@ -996,7 +1013,7 @@ function watchFlight(idx, btn){
         if(data.live && data.offers && data.offers.length){
           _offers = data.offers;
           finderBody.innerHTML = data.offers.map(function(o, i){ return offerCard(o, i); }).join('')
-            + '<div class="fnote">Live just now' + (data.cached ? ' · cached' : '') + ' · fares move fast, treat as a snapshot.<br>Tap 💗 Track on any flight and we’ll sniff out price drops daily 🐾</div>';
+            + '<div class="fnote">Live just now' + (data.cached ? ' · cached' : '') + ' · fares move fast, treat as a snapshot.<br>Tap 💗 Track on any flight and we’ll sniff out price drops daily 🐾' + usageNote(data) + '</div>';
           dealBadges(origin, destCode);
         } else {
           _offers = [];
@@ -1004,6 +1021,8 @@ function watchFlight(idx, btn){
             ? "Live price search isn't connected yet — compare on your sites below."
             : data.reason === "no_airport_code"
             ? "Add the 3-letter airport code as the destination for live prices — or compare on your sites below."
+            : data.reason === "quota"
+            ? "This month's free live searches are used up (250/month) — they reset " + esc(quotaResetLabel(data)) + ". Your tracked trips still get checked daily and emailed 🐶 Compare on the sites below meanwhile." + usageNote(data)
             : "Couldn't pull live prices this time — compare on your sites below.";
           finderBody.innerHTML = '<div class="floading">' + esc(why) + '</div>';
         }
